@@ -1,6 +1,7 @@
 #!/usr/bin/env python 2.7
 import os
 import sys
+import time
 from StringIO import StringIO
 from collections import defaultdict
 
@@ -8,10 +9,20 @@ import numpy as np
 import pandas as pd
 from pandas import (Series,DataFrame, Panel,)
 from pprint import pprint
+#from sklearn.metrics import precision_recall_fscore_support
 from scipy.spatial.distance import cosine
 from scipy.stats import pearsonr
 
 randn = np.random.randn
+
+"""
+TODO:
+1. Evaluation:
+   Test data: select 10 ppl each with one book.
+   predict: find the values of these 10 ppl with these books as vector.  
+2. Build various paths: movie, music
+2. Merge PTE scores
+"""
 
 class Recommend_book:
     """A recommendation system that gives one user and recommend book based on the simialrity between this user with other users"""
@@ -48,75 +59,66 @@ class Recommend_book:
         UU = self.weight55*self.bookadj55.dot(self.bookadj55.T) + self.bookadj45.dot(self.bookadj45.T) + \
             self.bookadj34.dot(self.bookadj34.T) + self.bookadj23.dot(self.bookadj23.T) + self.bookadj12.dot(self.bookadj12.T)
        
-        #print "===original pivoted matirx===="
-        #pprint (self.bookpivoted)
-#         print "==adj55===="
-#         pprint(self.bookadj55)
-#         print "==adj55_dot===="
-#         pprint(self.bookadj55.dot(self.bookadj55.T))
-#         print "==adj45===="
-#         pprint(self.bookadj45)
-#         print "==adj45_dot===="
-#         pprint(self.bookadj45.dot(self.bookadj45.T))
-#         print "==adj34===="
-#         pprint(self.bookadj34)
-#         print "==adj34_dot===="
-#         pprint(self.bookadj34.dot(self.bookadj34.T))
-#         print "==adj12===="
-#         pprint(self.bookadj12)
-#         print "==adj12_dot===="
-#         pprint(self.bookadj12.dot(self.bookadj12.T))
-    
+        print "===original pivoted matirx===="
+        pprint (self.bookpivoted)
+        # print "==adj55===="
+        # pprint(self.bookadj55)
+        # print "==adj55_dot===="
+        # pprint(self.bookadj55.dot(self.bookadj55.T))
+        # print "==adj45===="
+        # pprint(self.bookadj45)
+        # print "==adj45_dot===="
+        # pprint(self.bookadj45.dot(self.bookadj45.T))
+        # print "==adj34===="
+        # pprint(self.bookadj34)
+        # print "==adj34_dot===="
+        # pprint(self.bookadj34.dot(self.bookadj34.T))
+        # print "==adj12===="
+        # pprint(self.bookadj12)
+        # print "==adj12_dot===="
+        # pprint(self.bookadj12.dot(self.bookadj12.T))
+        # print "===UU==="
+        # pprint(UU)
         return UU
         
     def build_user_similarity_matrix_UBUB(self):
         UBUB = self.weight55*self.UBU.dot(self.bookadj55) + self.UBU.dot(self.bookadj45) + \
             self.UBU.dot(self.bookadj34) + self.UBU.dot(self.bookadj23) + self.UBU.dot(self.bookadj12)
         
-        #print "===UBUB===="
-        #pprint(UBUB)
+        print "===UBUB===="
+        pprint(UBUB)
         
-        return UBUB
+        return UBUB    
         
-        
-def test(inputbook, train):
+def test(inputbook, train_matrix):
     """Compare the trained vectors with the test vectors to generate F1 score and p-value.
     """        
     testbookdf = pd.read_csv(inputbook)
-    testlist = testbookdf['rating'].values.tolist()
-    trainlist = []
-    queryUserlist = testbookdf['userid'].values.tolist()
-    queryBooklist = testbookdf['bookid'].values.tolist()
-
-    print train
-    for i in range(0, len(queryUserlist)):
-        userid = []
-        bookid = []
-        i = 7
-        userid.append(queryUserlist[i])
-        bookid.append(queryBooklist[i])
-        trainRating = train[userid][bookid] #rowid, colid
-        print queryUserlist[i], queryBooklist[i]
-        print trainRating
-        trainlist.append(trainRating)
-    #TODO: the above loop cannot find userid and bookid even if I use book100.csv for trainning.
+    testrating_list = testbookdf['rating'].values.tolist()
+    queryuser_list = testbookdf['userid'].values.tolist()
+    querybook_list = testbookdf['bookid'].values.tolist()
+    print "testrating_list: ", testrating_list
+    size = len(queryuser_list)
+    trainrating_list = []
+    for i in range(0, size):
+        user = queryuser_list[i]
+        book = querybook_list[i]
+        print user, book
+        trainrating_list.append(train_matrix.at[user,book]) #rowid, colid
+    print "trainrating_list: ", trainrating_list
     
-    #print trainlist
-        
+    #compare the testrating_list & trainrating_list with pearson correlation and its p-value
+    print "pearsonr: ", pearsonr(testrating_list, trainrating_list)
     
 def main():
+    start = time.time()
     
-    r = Recommend_book("trainbook100.csv", "", "", 5.0)
-    test("testbook100.csv", r.UBUB)
+    r = Recommend_book("book5.csv", "", "", 5.0)
+    test("test5.csv", r.UBUB)
     
-    # use pearsonr to obtain p-value
-    #print pearsonr([1,3,3],[2,3,3])
-    #http://docs.scipy.org/doc/scipy/reference/stats.html
+    end = time.time()
+    print (end-start)
     
-    # p-value
-    # from sklearn.cross_validation import KFold
-    # http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.KFold.html
     
-
 if __name__ == "__main__":
     main()
