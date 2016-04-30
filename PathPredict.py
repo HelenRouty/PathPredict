@@ -15,6 +15,11 @@ from scipy.stats import pearsonr
 
 randn = np.random.randn
 
+TRAIN = "train.csv"
+TEST = "test.csv"
+MOVIE = "../douban_user_movie.csv"
+MUSIC = "../douban_user_music.csv"
+
 """
 TODO:
 1. Evaluation:
@@ -26,7 +31,7 @@ TODO:
 
 class Recommend_book:
     """A recommendation system that gives one user and recommend book based on the simialrity between this user with other users"""
-    def __init__(self, inputbook, inputmovie, inputmusic, weight55):
+    def __init__(self, inputbook, inputmusic, inputmovie, weight55):
         """Given a list of userid, bookid, rating csv file, output the similarities between user and user through the meta-path 
            user-book-user (UBU), user-movie-user (UVU), or user-music-user(USU).
         """
@@ -34,17 +39,38 @@ class Recommend_book:
         # build book matrix
         self.bookdf = pd.read_csv(inputbook)
         self.bookpivoted = self.bookdf.pivot(index='userid', columns='bookid', values='rating')
-        self.bookadj55 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0, 4.0], value=0.0).replace(to_replace=5.0, value=1.0)
-        self.bookadj45 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0], value=0.0).replace(to_replace=[4.0,5.0], value=1.0)
-        self.bookadj34 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 5.0], value=0.0).replace(to_replace=[3.0,4.0], value=1.0)
-        self.bookadj23 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 4.0, 5.0], value=0.0).replace(to_replace=[2.0,3.0], value=1.0)
-        self.bookadj12 = self.bookpivoted.replace(to_replace=['NaN', 3.0, 4.0, 5.0], value=0.0).replace(to_replace=[1.0,2.0], value=1.0)
-        
-        self.UBU = self.build_user_similarity_matrix_UBU()
-        self.UBUB = self.build_user_similarity_matrix_UBUB()
+        print self.bookpivoted.shape
+        # self.bookadj55 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0, 4.0], value=0.0).replace(to_replace=5.0, value=1.0)
+#         self.bookadj45 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0], value=0.0).replace(to_replace=[4.0,5.0], value=1.0)
+#         self.bookadj34 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 2.0, 5.0], value=0.0).replace(to_replace=[3.0,4.0], value=1.0)
+#         self.bookadj23 = self.bookpivoted.replace(to_replace=['NaN', 1.0, 4.0, 5.0], value=0.0).replace(to_replace=[2.0,3.0], value=1.0)
+#         self.bookadj12 = self.bookpivoted.replace(to_replace=['NaN', 3.0, 4.0, 5.0], value=0.0).replace(to_replace=[1.0,2.0], value=1.0
+#         self.UBU = self.build_user_similarity_matrix_UBU()
+#         self.UBUB = self.build_user_similarity_matrix_UBUB()
+        # build music matrix
+        self.musicdf = pd.read_csv(inputmusic)
+        self.musicpivoted = self.musicdf.pivot(index='userid', columns='musicid', values='rating')
+        print self.musicpivoted.shape
+        # self.musicadj55 = self.musicpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0, 4.0], value=0.0).replace(to_replace=5.0, value=1.0)
+ #        self.musicadj45 = self.musicpivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0], value=0.0).replace(to_replace=[4.0,5.0], value=1.0)
+ #        self.musicadj34 = self.musicpivoted.replace(to_replace=['NaN', 1.0, 2.0, 5.0], value=0.0).replace(to_replace=[3.0,4.0], value=1.0)
+ #        self.musicadj23 = self.musicpivoted.replace(to_replace=['NaN', 1.0, 4.0, 5.0], value=0.0).replace(to_replace=[2.0,3.0], value=1.0)
+ #        self.musicadj12 = self.musicpivoted.replace(to_replace=['NaN', 3.0, 4.0, 5.0], value=0.0).replace(to_replace=[1.0,2.0], value=1.0)
+ #        self.USU = self.build_user_similarity_matrix_USU()
+ #        self.USUS = self.build_user_similarity_matrix_USUS()
         # build movie matrix
-        # self.UMU = self.build_user_similarity_matrix_UBU(self.moviepivoted)
+        self.moviedf = pd.read_csv(inputmovie)
+        self.moviepivoted = self.moviedf.pivot(index='userid', columns='movieid', values='rating')
+        print self.moviepivoted.shape
+        # self.movieadj55 = self.moviepivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0, 4.0], value=0.0).replace(to_replace=5.0, value=1.0)
+ #        self.movieadj45 = self.moviepivoted.replace(to_replace=['NaN', 1.0, 2.0, 3.0], value=0.0).replace(to_replace=[4.0,5.0], value=1.0)
+ #        self.movieadj34 = self.moviepivoted.replace(to_replace=['NaN', 1.0, 2.0, 5.0], value=0.0).replace(to_replace=[3.0,4.0], value=1.0)
+ #        self.movieadj23 = self.moviepivoted.replace(to_replace=['NaN', 1.0, 4.0, 5.0], value=0.0).replace(to_replace=[2.0,3.0], value=1.0)
+ #        self.movieadj12 = self.moviepivoted.replace(to_replace=['NaN', 3.0, 4.0, 5.0], value=0.0).replace(to_replace=[1.0,2.0], value=1.0)
+ #        self.UVU = self.build_user_similarity_matrix_UVU()
+ #        self.UVUV = self.build_user_similarity_matrix_UVUV()
 
+    #=============== Book ===================#
     def build_user_similarity_matrix_UBU(self):
         """Given a matrix, output the similarities between user and user through the meta-path in the given matrix: user-book-user,
            user-movie-user, or user-music-user.
@@ -56,7 +82,7 @@ class Recommend_book:
                     simialrity score between two users. The higher the value is, i and j are more similar.
         """
         
-        UU = self.weight55*self.bookadj55.dot(self.bookadj55.T) + self.bookadj45.dot(self.bookadj45.T) + \
+        UBU = self.weight55*self.bookadj55.dot(self.bookadj55.T) + self.bookadj45.dot(self.bookadj45.T) + \
             self.bookadj34.dot(self.bookadj34.T) + self.bookadj23.dot(self.bookadj23.T) + self.bookadj12.dot(self.bookadj12.T)
        
         print "===original pivoted matirx===="
@@ -77,9 +103,10 @@ class Recommend_book:
         # pprint(self.bookadj12)
         # print "==adj12_dot===="
         # pprint(self.bookadj12.dot(self.bookadj12.T))
-        # print "===UU==="
-        # pprint(UU)
-        return UU
+        # print "===UBU==="
+        # pprint(UBU)
+        return UBU
+        
         
     def build_user_similarity_matrix_UBUB(self):
         UBUB = self.weight55*self.UBU.dot(self.bookadj55) + self.UBU.dot(self.bookadj45) + \
@@ -88,7 +115,30 @@ class Recommend_book:
         print "===UBUB===="
         pprint(UBUB)
         
-        return UBUB    
+        return UBUB   
+    
+    #=============== Music ===================#    
+    def build_user_similarity_matrix_USU(self): 
+        USU = self.weight55*self.musicadj55.dot(self.musicadj55.T) + self.musicadj45.dot(self.musicadj45.T) + \
+            self.musicadj34.dot(self.musicadj34.T) + self.musicadj23.dot(self.musicadj23.T) + self.musicadj12.dot(self.musicadj12.T)
+        return USU
+    
+    def build_user_similarity_matrix_USUS(self):
+        USUS = self.weight55*self.USU.dot(self.musicadj55) + self.USU.dot(self.musicadj45) + \
+            self.USU.dot(self.musicadj34) + self.USU.dot(self.musicadj23) + self.USU.dot(self.musicadj12)
+        return USUS
+        
+    #=============== Movie ===================#    
+    def build_user_similarity_matrix_UVU(self): 
+        UVU = self.weight55*self.movieadj55.dot(self.movieadj55.T) + self.movieadj45.dot(self.movieadj45.T) + \
+            self.movieadj34.dot(self.movieadj34.T) + self.movieadj23.dot(self.movieadj23.T) + self.movieadj12.dot(self.movieadj12.T)
+        return UVU
+    
+    def build_user_similarity_matrix_UVUV(self):
+        UVUV = self.weight55*self.UVU.dot(self.movieadj55) + self.UVU.dot(self.movieadj45) + \
+            self.UVU.dot(self.movieadj34) + self.UVU.dot(self.movieadj23) + self.UVU.dot(self.movieadj12)
+        return UVUV
+             
         
 def test(inputbook, train_matrix):
     """Compare the trained vectors with the test vectors to generate F1 score and p-value.
@@ -113,8 +163,8 @@ def test(inputbook, train_matrix):
 def main():
     start = time.time()
     
-    r = Recommend_book("book5.csv", "", "", 5.0)
-    test("test5.csv", r.UBUB)
+    r = Recommend_book("train.csv", "", "", 5.0)
+    test("test.csv", r.UBUB)
     
     end = time.time()
     print (end-start)
