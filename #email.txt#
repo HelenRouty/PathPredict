@@ -1,0 +1,25 @@
+      I apologize for being late today due to an accident in my previous meeting.
+
+      Thank you for your patience and explanation about the project. It is much clearer for us how to use LINE in PathPredict. However, after going through the entire process again, we are not sure about a few points and want to ask you if we have the right understanding:
+
+      1) Use LINE to create a vector for each node.
+
+           -- What should be the vector size of the each node? Should be use 128 first and try various length? A larger one seems to create more sparsity while a shorter one seems to have less information.
+
+      2) Generate feature for each node.
+
+          -- Suppose we have 10 users and 9 books in total and we want a meta-path UBUB as a feature category. Should we have 9*8 features <u1,b_i,u_j,b1> where i in [2, 10] and j in [2 ,8]?
+
+          -- For feature <u1, b2, u2, b1>, if u1 has vector v(u1), u1 b2 has rating r(u1b2), and correlation c(u1b2), we can have several feature representations:
+             (1)name vector: [v(u1), v(b2), v(u2), v(b1)]
+             (2)rating vector: [r(u1b2), r(b2u2), r(u2b1)]
+             (3)correlation vector: [c(u1b2), c(b2u2), c(u2b1)]
+          And we should do experiment on which vectors to choose and which feature category to choose. Is this right?
+
+       3)  Train a weight for each feature category. If we have 3 feature category  FC, each corresponding to a meta-path, then we have 
+           w1*FC1 + w2*FC2 + w3*FC3 = label
+           We use logistic regression and get [w1, w2, w3] that minimize loss. 
+    
+      4) Apply [w1, w2, w3] to each feature category for test users to predict book ratings, and compare with the real book ratings as in baseline. We use Pearson correlation to find the F1 and p-value.
+
+Is the above process right?
