@@ -55,7 +55,7 @@ def readTestBook(file, mapping):
 
 def multMatrix(path, test_uidx, test_bidx):
 	um = [] # first matrix about test_u extracted from u matrix
-	if len(path) == 1:
+    if len(path) == 1: # if path == ub
 		#ub_whole = np.load('ub.npy')
 		ub_whole = np.asmatrix(np.array([[1, 2], [3, 4], [5, 6]]))
 
